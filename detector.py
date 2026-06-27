@@ -62,12 +62,18 @@ class Hand:
     # returns list of extended fingers
     @property
     def fingers_up(self) -> List[bool]:
-        tips = [THUMB_TIP, INDEX_TIP, MIDDLE_TIP, RING_TIP, PINKY_TIP]
-        knuckle = [2, 6, 10, 14, 18]
-        return [
-            self.landmarks[t][1] < self.landmarks[k][1]
-            for t, k in zip(tips, knuckle)
-        ]
+        lm = self.landmarks
+        up = []
+        palm_facing_right = lm[17][0] < lm[5][0]  
+        if palm_facing_right:
+            up.append(lm[4][0] > lm[3][0])   
+        else:
+            up.append(lm[4][0] < lm[3][0])
+
+        for tip, pip, mcp in [(8,7,6), (12,11,10), (16,15,14), (20,19,18)]:
+            up.append(lm[tip][1] < lm[pip][1] and lm[tip][1] < lm[mcp][1])
+
+        return up
 
     @property
     def gesture(self) -> str:
