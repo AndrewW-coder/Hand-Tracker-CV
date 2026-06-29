@@ -6,6 +6,7 @@ Download the model first:
 """
 
 from dataclasses import dataclass, field
+from turtle import up
 from typing import List
 from pathlib import Path
 import cv2
@@ -64,11 +65,17 @@ class Hand:
     def fingers_up(self) -> List[bool]:
         lm = self.landmarks
         up = []
-        palm_facing_right = lm[17][0] < lm[5][0]  
-        if palm_facing_right:
-            up.append(lm[4][0] > lm[3][0])   
-        else:
-            up.append(lm[4][0] < lm[3][0])
+        palm_center_x = (lm[0][0] + lm[5][0] + lm[17][0]) // 3
+        palm_center_y = (lm[0][1] + lm[5][1] + lm[17][1]) // 3
+        thumb_tip_dist = (
+            (lm[4][0] - palm_center_x) ** 2 +
+            (lm[4][1] - palm_center_y) ** 2
+        ) ** 0.5
+        index_mcp_dist = (
+            (lm[5][0] - palm_center_x) ** 2 +
+            (lm[5][1] - palm_center_y) ** 2
+        ) ** 0.5
+        up.append(thumb_tip_dist > index_mcp_dist * 1.1)
 
         for tip, pip, mcp in [(8,7,6), (12,11,10), (16,15,14), (20,19,18)]:
             up.append(lm[tip][1] < lm[pip][1] and lm[tip][1] < lm[mcp][1])
